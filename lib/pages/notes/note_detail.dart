@@ -59,8 +59,9 @@ class _NoteDetailState extends State<NoteDetail> {
             if (widget.isForTask) {
               note.isForTask = true;
             }
-            if (note.title != '' || note.note != '')
+            if (note.title != '' || note.note != ''){
               model.addNote(note);
+             }
             _isNewNote = false;
           } else
             model.updateNote(note);
@@ -93,6 +94,9 @@ class _NoteDetailState extends State<NoteDetail> {
                     if (! _isNewNote ) {
                     model.selectNoteId(note.id);
                     model.deleteNote();
+                    if (widget.isForTask) {
+                      model.deleteNoteFromTask(note.id);
+                    }
                     }
                     Navigator.of(context).pop();
                   }

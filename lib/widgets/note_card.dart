@@ -6,8 +6,9 @@ import 'package:task/pages/notes/note_detail.dart';
 class NoteCard extends StatefulWidget {
   final Note note;
   final Function selectNoteId;
+  final bool isForTask;
 
-  const NoteCard(this.note, this.selectNoteId);
+  const NoteCard(this.note, this.selectNoteId, {this.isForTask = false});
 
   @override
   _NoteCardState createState() => _NoteCardState();
@@ -33,7 +34,7 @@ class _NoteCardState extends State<NoteCard> {
             MaterialPageRoute(
               builder: (ctx) {
                 widget.selectNoteId(widget.note.id);
-                return NoteDetail(false, note: widget.note);
+                return NoteDetail(false, note: widget.note, isForTask: widget.isForTask,);
               },
             ),
           );

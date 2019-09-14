@@ -138,8 +138,7 @@ class _DescriptionOptions extends State<DescriptionOptions> {
                     },
                   ),
                 ).then((note) {
-                  if (note == null) return;
-                  print(note.isForTask);
+                  if (note == null || note.id == null) return;
                   setState(() {
                     taskNote = note;
                   });

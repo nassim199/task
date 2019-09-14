@@ -140,6 +140,13 @@ class TasksModel extends Model with SortOptions, AppTheme, NotesModel {
     notifyListeners();
   }
 
+  void deleteNoteFromTask(String id) {
+    Task task = _tasks.firstWhere((t) => t.note == id);
+    task.note = '';
+    _taskRepo.updateTask(task);
+    notifyListeners();
+  }
+
 /* Labels */
 
   List<Label> get labels => [..._labels];
@@ -197,6 +204,7 @@ class TasksModel extends Model with SortOptions, AppTheme, NotesModel {
         List ls = task.labels.split('/');
         ls.removeAt(ls.indexWhere((l) => l == label.label));
         task.labels = ls.join('/');
+        _taskRepo.updateTask(task);
       }
     });
 

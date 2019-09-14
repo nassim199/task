@@ -173,7 +173,7 @@ class _TaskDetail extends State<TaskDetail> with TickerProviderStateMixin {
                             ),
                             Divider(),
                             NoteCard(model.findNoteById(task.note),
-                                model.selectNoteId),
+                                model.selectNoteId, isForTask: true,),
                           ],
                         ),
                   Container(

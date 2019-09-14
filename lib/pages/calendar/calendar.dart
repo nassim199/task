@@ -20,7 +20,7 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
   CalendarController _calendarController;
   DateTime _selectedMonth = DateTime.now(), _selectedDay = DateTime.now();
   List<Task> tasks;
-  bool showCalendar = true;
+  bool showCalendar = false;
 
   @override
   void initState() {
@@ -101,20 +101,20 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
               '${monthsOfYear[_selectedMonth.month - 1]}, ${_selectedMonth.year}',
               style: TextStyle(color: Theme.of(context).primaryColor),
             ),
-            // actions: <Widget>[
-            //   IconButton(
-            //     icon: showCalendar && _calendarController.calendarFormat == CalendarFormat.month ? Icon(Icons.keyboard_arrow_up) : Icon(Icons.keyboard_arrow_down),
-            //     onPressed: () {
-            //       if (!showCalendar || _calendarController.calendarFormat == CalendarFormat.month)
-            //       setState(() {
-            //         showCalendar = !showCalendar;
-            //       });
-            //       else {
-            //         _calendarController.setCalendarFormat(CalendarFormat.month);
-            //       }
-            //     },
-            //   )
-            // ],
+            actions: <Widget>[
+              IconButton(
+                icon: showCalendar && _calendarController.calendarFormat == CalendarFormat.month ? Icon(Icons.keyboard_arrow_up) : Icon(Icons.keyboard_arrow_down),
+                onPressed: () {
+                  if (!showCalendar || _calendarController.calendarFormat == CalendarFormat.month)
+                  setState(() {
+                    showCalendar = !showCalendar;
+                  });
+                  else {
+                    _calendarController.setCalendarFormat(CalendarFormat.month);
+                  }
+                },
+              )
+            ],
           ),
           body: Column(
             children: <Widget>[
@@ -162,6 +162,7 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
   }
 
   Widget _buildCalendar() {
+    showCalendar = true;
     return TableCalendar(
       calendarController: _calendarController,
       initialCalendarFormat: CalendarFormat.week,
