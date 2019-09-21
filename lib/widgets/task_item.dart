@@ -68,13 +68,13 @@ class TaskItem extends StatelessWidget {
             },
             activeColor: Theme.of(context).primaryColor,
           ),
-          Container(
-            width: MediaQuery.of(context).size.width - 100,
+          Expanded(
+           // width: MediaQuery.of(context).size.width - 100,
             child: Hero(
               tag: task.id,
               child: Text(
                 task.title,
-                textAlign: TextAlign.center,
+                textAlign: TextAlign.left,
                 style: TextStyle(
                     color: task.done ? Colors.grey[600] : Colors.black,
                     decoration: task.done

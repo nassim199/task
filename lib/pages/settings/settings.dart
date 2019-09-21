@@ -41,8 +41,8 @@ class _SettingsState extends State<Settings> {
                           child: Container(
                             margin: EdgeInsets.symmetric(horizontal: 5),
                             child: CircleAvatar(
-                              backgroundColor: model.themes[index],
-                              child: (model.selectdTheme == model.themes[index])
+                              backgroundColor: model.themes[index]['Primary'],
+                              child: (model.selectedTheme == model.themes[index])
                                   ? Icon(
                                       Icons.check,
                                       color: Colors.white,

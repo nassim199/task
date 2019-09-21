@@ -6,7 +6,6 @@ import 'package:task/widgets/note_card.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 import '../../scoped-model/tasks.dart';
-import '../../models/date.dart';
 
 class TaskDetail extends StatefulWidget {
   final String id;
@@ -127,7 +126,7 @@ class _TaskDetail extends State<TaskDetail> with TickerProviderStateMixin {
                   Column(children: <Widget>[
                     Text('date : ${task.date.date.year}/${task.date.date.month}/${task.date.date.day}'),
                     (task.date.time == null) ? Container() : Text('hour : ${task.date.time.hour}:${task.date.time.minute}'),
-                    (task.date.repeat) ? Text('Repeat every : ${task.date.occurence} ${everyToString(task.date.every)}') : Container(),
+                    (task.date.repeat) ? Text('Repeat every ${task.date.every}') : Container(),
                   ],),
                   task.priority != 'None'
                       ? Row(
@@ -173,7 +172,7 @@ class _TaskDetail extends State<TaskDetail> with TickerProviderStateMixin {
                             ),
                             Divider(),
                             NoteCard(model.findNoteById(task.note),
-                                model.selectNoteId, isForTask: true,),
+                                model.selectNoteId),
                           ],
                         ),
                   Container(

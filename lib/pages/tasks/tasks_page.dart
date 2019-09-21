@@ -13,14 +13,10 @@ class TaskPage extends StatefulWidget {
 }
 
 class _TaskPage extends State<TaskPage> {
-  int selectedLabel = -1;
-
-
   Widget _labelTag(Label label, Function toogle, int index) {
     return GestureDetector(
       onTap: () {
-        toogle(index, selectedLabel);
-        selectedLabel = index;
+        toogle(index);
       },
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -59,7 +55,7 @@ class _TaskPage extends State<TaskPage> {
           drawer: child,
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: Colors.transparent,
+            backgroundColor: Colors.white,
             iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
             title: Text(
               'tasks',
@@ -69,25 +65,9 @@ class _TaskPage extends State<TaskPage> {
               PopupMenuButton(
                 onSelected: (value) {
                   if (value == 0) {
-                    //  setState(() {
                     model.toogleShow();
-                    //  });
-                    // prefs.setBool('bindCompleted', model.bindCompleted);
                   } else if (value == 1) {
-                    // showDialog(
-                    //   context: context,
-                    //   builder: (context) => Dialog(
-                    //     insetAnimationDuration: Duration(milliseconds: 300),
-                    //     child: Column(children: <Widget>[
-                    //         Text('priority'),
-                    //         Text('')
-                    //     ],),
-                    //   )
-                    // );
-                    //setState(() {
                     model.toogleSort();
-                    //});
-                    // prefs.setBool('sortPriority', model.sortPriority);
                   }
                 },
                 icon: Icon(Icons.more_vert),
@@ -111,29 +91,47 @@ class _TaskPage extends State<TaskPage> {
           body: Column(
             children: <Widget>[
               Container(
-                height: 45,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index == 0) {
-                      Label.allTasks.color = Theme.of(context).primaryColor;
-                      return _labelTag(Label.allTasks, model.toogleChecked, -1);
-                    }
-                    return _labelTag(model.labels[index - 1],
-                        model.toogleChecked, index - 1);
-                  },
-                  itemCount: model.labels.length + 1,
+                color: Colors.white,
+                child: Container(
+                  child: TextField(
+                    decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        hintText: 'Search tasks ...',
+                        border: InputBorder.none),
+                    onChanged: model.searchFilter,
+                  ),
+                  margin: EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.all(Radius.circular(6)),
+                  ),
                 ),
               ),
+              Container(
+                height: 65,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius:
+                      const BorderRadius.vertical(bottom: Radius.circular(20)),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                child: ListView(scrollDirection: Axis.horizontal, children: [
+                  _labelTag(Label.allTasks, model.toggleChecked, -1),
+                  ...List.generate(model.labels.length,
+                      (i) => _labelTag(model.labels[i], model.toggleChecked, i))
+                ]),
+              ),
               Expanded(
-                  child: TaskList(model.bindCompleted, model.sortPriority, model.toggleTaskState)),
+                  child: TaskList(model.bindCompleted, model.sortPriority,
+                      model.toggleTaskState)),
             ],
           ),
           floatingActionButton: FloatingActionButton(
             //key: Key('add-task'),
             child: Icon(Icons.add),
             backgroundColor: Theme.of(context).primaryColor.withOpacity(0.8),
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (BuildContext context) => AddTask(),

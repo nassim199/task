@@ -14,12 +14,11 @@ description: A new Flutter project.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  zefyr: ^0.6.0
   flutter_staggered_grid_view: ^0.3.0
   scoped_model: ^1.0.1
   table_calendar: ^2.0.0

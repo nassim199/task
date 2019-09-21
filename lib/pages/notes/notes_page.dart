@@ -14,6 +14,7 @@ class NotesPage extends StatefulWidget {
 
 class _NotesPageState extends State<NotesPage> {
   var notes;
+  int format = 2;
   @override
   Widget build(BuildContext context) {
     return ScopedModelDescendant<TasksModel>(
@@ -40,6 +41,14 @@ class _NotesPageState extends State<NotesPage> {
                     ),
                   );
                 },
+              ),
+              IconButton(
+                icon: Icon(format == 2 ? Icons.view_agenda : Icons.view_quilt),
+                onPressed: () {
+                  setState(() {
+                   format = format == 2 ? 4 : 2; 
+                  });
+                },
               )
             ],
           ),
@@ -56,7 +65,7 @@ class _NotesPageState extends State<NotesPage> {
                     },
                     child: NoteCard(notes[index], model.selectNoteId),
                   ),
-                  staggeredTileBuilder: (int index) => StaggeredTile.fit(2),
+                  staggeredTileBuilder: (int index) => StaggeredTile.fit(format),
                   mainAxisSpacing: 4.0,
                   crossAxisSpacing: 4.0,
                 )

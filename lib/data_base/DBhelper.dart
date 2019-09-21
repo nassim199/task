@@ -21,12 +21,30 @@ class TaskDB {
     final db = openDatabase(
       join(await getDatabasesPath(), 'tasksDB.db'),
       onCreate: (db, version) async {
+        await db.execute("""CREATE TABLE tasks(
+                id TEXT PRIMARY KEY, 
+                title TEXT, 
+                priority TEXT, 
+                labels TEXT,  
+                location TEXT, 
+                note TEXT, 
+                date TEXT, 
+                done INT, 
+                notId INTEGER);""");
         await db.execute(
-          "CREATE TABLE tasks(id TEXT PRIMARY KEY, title TEXT, priority TEXT, labels TEXT,  location TEXT, note TEXT, date TEXT, done INT);"
+          """CREATE TABLE labels(
+              label TEXT PRIMARY KEY, 
+              color INTEGER);""",
         );
-        return db.execute("CREATE TABLE date(id TEXT PRIMARY KEY, date TEXT, time TEXT, repeat INT, every TEXT, occurence INT, repeatDay TEXT, reminder INT, before INT, at TEXT);");
+        return db.execute("""CREATE TABLE dates(
+              id TEXT PRIMARY KEY, 
+              date TEXT, 
+              time TEXT, 
+              repeat INT, 
+              every TEXT, 
+              reminder INT);""");
       },
-      version: 2,
+      version: 1,
     );
     return db;
   }
@@ -39,15 +57,14 @@ class TaskDB {
       task.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
-    if (task.date != null)
-    await db.insert('date', task.date.toMap());
+    if (task.date != null) await db.insert('dates', task.date.toMap());
   }
 
   Future<List<Task>> getTasks() async {
     final Database db = await database;
 
     final List<Map<String, dynamic>> maps = await db.query('tasks');
-    final List<Map<String, dynamic>> dates = await db.query('date');
+    final List<Map<String, dynamic>> dates = await db.query('dates');
     return List.generate(maps.length, (i) {
       Task task = Task(
         title: maps[i]['title'],
@@ -59,8 +76,9 @@ class TaskDB {
         id: maps[i]['id'],
       );
       if (maps[i]['date'] != '') {
-      Date date = Date.fromMap(dates.firstWhere((d) => d['id'] == maps[i]['date']));
-      task.date = date;
+        Date date =
+            Date.fromMap(dates.firstWhere((d) => d['id'] == maps[i]['date']));
+        task.date = date;
       }
       return task;
     });
@@ -76,7 +94,8 @@ class TaskDB {
       whereArgs: [task.id],
     );
     if (task.date != null)
-    await db.update('date', task.date.toMap(), where: "id = ?", whereArgs: [task.date.id]);
+      await db.update('dates', task.date.toMap(),
+          where: "id = ?", whereArgs: [task.date.id]);
   }
 
   Future<void> deleteTask(Task task) async {
@@ -87,30 +106,10 @@ class TaskDB {
       whereArgs: [task.id],
     );
     if (task.date != null)
-    await db.delete('date', where: "id = ?", whereArgs: [task.date.id]);
-  }
-}
-
-class LabelDB {
-  static Database dbInstance;
-
-  Future<Database> get database async {
-    if (dbInstance == null) dbInstance = await initDB();
-    return dbInstance;
+      await db.delete('dates', where: "id = ?", whereArgs: [task.date.id]);
   }
 
-  Future<Database> initDB() async {
-    final db = openDatabase(
-      join(await getDatabasesPath(), 'labelsDataBase.db'),
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE labels(label TEXT PRIMARY KEY, color INTEGER);",
-        );
-      },
-      version: 1,
-    );
-    return db;
-  }
+  // labels
 
   Future<void> insertLabel(Label label) async {
     final Database db = await database;
@@ -173,7 +172,7 @@ class NoteDB {
       join(await getDatabasesPath(), 'notesDataBase.db'),
       onCreate: (db, version) {
         return db.execute(
-          "CREATE TABLE notes(id TEXT PRIMARY KEY, title TEXT, content TEXT, color INTEGER, isArchived INTEGER, isForTask INTEGER);",
+          "CREATE TABLE notes(id TEXT PRIMARY KEY, title TEXT, content TEXT, color INTEGER, isArchived INTEGER, isForTask INTEGER, isCheckList INTEGER);",
         );
       },
       version: 1,
@@ -186,14 +185,7 @@ class NoteDB {
 
     await db.insert(
       'notes',
-      {
-        'id': note.id,
-        'title': note.title,
-        'content': note.note,
-        'color': note.color.value,
-        'isArchived': note.isArchived ? 1 : 0,
-        'isForTask': note.isArchived ? 1 : 0
-      },
+      note.toMap(),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }
@@ -204,14 +196,7 @@ class NoteDB {
     final List<Map<String, dynamic>> maps = await db.query('notes');
 
     return List.generate(maps.length, (i) {
-      return Note(
-        id: maps[i]['id'],
-        title: maps[i]['title'],
-        note: maps[i]['content'],
-        color: Color(maps[i]['color']),
-        isArchived: maps[i]['isArchived'] == 1,
-        isForTask: maps[i]['isForTask'] == 1,
-      );
+      return Note.fromMap(maps[i]);
     });
   }
 
@@ -220,14 +205,7 @@ class NoteDB {
 
     await db.update(
       'notes',
-      {
-        'id': note.id,
-        'title': note.title,
-        'content': note.note,
-        'color': note.color.value,
-        'isArchived': note.isArchived ? 1 : 0,
-        'isForTask': note.isArchived ? 1 : 0
-      },
+      note.toMap(),
       where: "id = ?",
       whereArgs: [note.id],
     );

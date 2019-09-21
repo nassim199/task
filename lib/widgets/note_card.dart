@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:task/models/note.dart';
@@ -6,9 +7,8 @@ import 'package:task/pages/notes/note_detail.dart';
 class NoteCard extends StatefulWidget {
   final Note note;
   final Function selectNoteId;
-  final bool isForTask;
 
-  const NoteCard(this.note, this.selectNoteId, {this.isForTask = false});
+  const NoteCard(this.note, this.selectNoteId);
 
   @override
   _NoteCardState createState() => _NoteCardState();
@@ -21,12 +21,13 @@ class _NoteCardState extends State<NoteCard> {
   void initState() {
     super.initState();
     _fontSize = _determineFontSizeForContent(
-        ((widget.note.note != null) ? widget.note.note.length : 0) +
+        ((widget.note.content != null) ? widget.note.content.length : 0) +
             ((widget.note.title != null) ? widget.note.title.length : 0));
   }
 
   @override
   Widget build(BuildContext context) {
+    var checkList = widget.note.checkList;
     return Card(
       child: GestureDetector(
         onTap: () {
@@ -34,7 +35,7 @@ class _NoteCardState extends State<NoteCard> {
             MaterialPageRoute(
               builder: (ctx) {
                 widget.selectNoteId(widget.note.id);
-                return NoteDetail(false, note: widget.note, isForTask: widget.isForTask,);
+                return NoteDetail(false, note: widget.note);
               },
             ),
           );
@@ -55,12 +56,33 @@ class _NoteCardState extends State<NoteCard> {
               (widget.note.title != null && widget.note.title != '')
                   ? Divider()
                   : Container(),
-              AutoSizeText(
-                widget.note.note,
-                maxLines: 4,
-                style: TextStyle(fontSize: _fontSize),
-                textScaleFactor: 1.5,
-              ),
+              if (!widget.note.isCheckList)
+                AutoSizeText(
+                  widget.note.content,
+                  maxLines: 4,
+                  style: TextStyle(fontSize: _fontSize),
+                  textScaleFactor: 1.5,
+                ),
+              if (widget.note.isCheckList)
+                ...List.generate(min(3, checkList.length), (i) {
+                  return Row(
+                    key: Key('$i'),
+                    children: <Widget>[
+                      Checkbox(
+                        onChanged: (value) {},
+                        value: checkList[i]['state'],
+                      ),
+                      Expanded(
+                        child: Text(
+                          checkList[i]['content'] + ( (i == 2 && i < checkList.length) ? '...' : ''),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    ],
+                  );
+                })
             ],
           ),
         ),

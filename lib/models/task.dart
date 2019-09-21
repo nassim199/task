@@ -10,6 +10,7 @@ class Task {
   Date date;
   bool done;
   String id;
+  int notId;
 
   Task(
       {@required this.title,
@@ -19,7 +20,8 @@ class Task {
       this.note = '',
       this.location = '',
       this.date,
-      this.id = ''}) {
+      this.id = '',
+      this.notId = -1}) {
       //  if (this.date == null) this.date = Date();
       }
   Task.fromMap(Map<String, dynamic> taskMap) {
@@ -31,6 +33,7 @@ class Task {
     this.note = taskMap['note'];
     this.location = taskMap['location'];
     this.date = taskMap['date'];
+    this.notId = taskMap['notId'];
   }
 
   Map<String, dynamic> toMap() {
@@ -43,6 +46,7 @@ class Task {
       'note' : this.note,
       'location' : this.location,
       'date' : this.date == null ? '' : this.date.id,
+      'notId' : this.notId
     };
   }
 

@@ -8,7 +8,7 @@ import './task_item.dart';
 import '../pages/tasks/task_detail.dart';
 
 class TaskList extends StatefulWidget {
-  final bool bindCompeleted, sortPriority; 
+  final bool bindCompeleted, sortPriority;
   final Function toggleTaskState;
   TaskList(this.bindCompeleted, this.sortPriority, this.toggleTaskState);
 
@@ -23,8 +23,7 @@ class _TaskList extends State<TaskList> {
     super.initState();
   }
 
-  Widget _taskBuilder(
-      Task task, Function toogleTaskState) {
+  Widget _taskBuilder(Task task, Function toggleTaskState) {
     return Column(
       children: <Widget>[
         Slidable(
@@ -52,7 +51,7 @@ class _TaskList extends State<TaskList> {
                     color: Colors.deepOrange,
                     icon: Icons.undo,
                     onTap: () {
-                      toogleTaskState(task.id);
+                      toggleTaskState(task.id);
                     },
                   )
                 : IconSlideAction(
@@ -60,7 +59,7 @@ class _TaskList extends State<TaskList> {
                     color: Colors.blue,
                     icon: Icons.done,
                     onTap: () {
-                      toogleTaskState(task.id);
+                      toggleTaskState(task.id);
                     },
                   ),
           ],
@@ -75,17 +74,17 @@ class _TaskList extends State<TaskList> {
     return ScopedModelDescendant<TasksModel>(
       builder: (BuildContext context, Widget child, TasksModel model) {
         tasks = model.tasksWhere;
-        if (tasks.length >0 ){
-
-        return ListView.builder(
-          itemBuilder: (BuildContext context, int index) {
-            return _taskBuilder(
-                tasks[index], model.toggleTaskState);
-          },
-          itemCount: tasks.length,
-        );}
-        else 
-          return Center(child: Text('No tasks'),);
+        if (tasks.length > 0) {
+          return ListView.builder(
+            itemBuilder: (BuildContext context, int index) {
+              return _taskBuilder(tasks[index], model.toggleTaskState);
+            },
+            itemCount: tasks.length,
+          );
+        } else
+          return Center(
+            child: Text('No tasks'),
+          );
       },
     );
   }

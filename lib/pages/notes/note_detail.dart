@@ -16,7 +16,7 @@ class NoteDetail extends StatefulWidget {
 class _NoteDetailState extends State<NoteDetail> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
-  bool _isNewNote = false;
+  bool _isNewNote = false, reorder = false;
   Note note;
   final _titleFocus = FocusNode();
   final _contentFocus = FocusNode();
@@ -45,7 +45,7 @@ class _NoteDetailState extends State<NoteDetail> {
     } else {
       note = widget.note;
       _titleController.text = note.title;
-      _contentController.text = note.note;
+      _contentController.text = note.content;
     }
   }
 
@@ -59,9 +59,9 @@ class _NoteDetailState extends State<NoteDetail> {
             if (widget.isForTask) {
               note.isForTask = true;
             }
-            if (note.title != '' || note.note != ''){
+            if (note.title != '' || note.content != '') {
               model.addNote(note);
-             }
+            }
             _isNewNote = false;
           } else
             model.updateNote(note);
@@ -76,7 +76,20 @@ class _NoteDetailState extends State<NoteDetail> {
             iconTheme: IconThemeData(color: Colors.black),
             backgroundColor: note.color,
             actions: <Widget>[
+              IconButton(
+                icon: Icon((reorder) ? Icons.check : Icons.archive),
+                onPressed: () {
+                  if (reorder) {
+                    setState(() {
+                      reorder = false;
+                    });
+                  } else {
+                    //TODO: add archive
+                  }
+                },
+              ),
               PopupMenuButton(
+                color: note.color,
                 onSelected: (int selectedValue) {
                   if (selectedValue == 0) {
                     showDialog(
@@ -91,14 +104,26 @@ class _NoteDetailState extends State<NoteDetail> {
                               },
                             ));
                   } else if (selectedValue == 1) {
-                    if (! _isNewNote ) {
-                    model.selectNoteId(note.id);
-                    model.deleteNote();
-                    if (widget.isForTask) {
-                      model.deleteNoteFromTask(note.id);
-                    }
+                    if (!_isNewNote) {
+                      if (note.isForTask) {
+                        model.deleteNoteFromTask(note.id);
+                      }
+                      model.selectNoteId(note.id);
+                      model.deleteNote();
                     }
                     Navigator.of(context).pop();
+                  } else if (selectedValue == 2) {
+                    setState(() {
+                      note.setCheckList(!note.isCheckList, false);
+                      if (!note.isCheckList) {
+                        _contentController.text = note.content;
+                      }
+                      reorder = false;
+                    });
+                  } else if (selectedValue == 3) {
+                    setState(() {
+                      reorder = true;
+                    });
                   }
                 },
                 icon: Icon(Icons.more_vert),
@@ -107,6 +132,9 @@ class _NoteDetailState extends State<NoteDetail> {
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.brush),
+                        SizedBox(
+                          width: 8,
+                        ),
                         Text('choose color'),
                       ],
                     ),
@@ -116,13 +144,42 @@ class _NoteDetailState extends State<NoteDetail> {
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.delete),
+                        SizedBox(
+                          width: 8,
+                        ),
                         Text('delete'),
                       ],
                     ),
                     value: 1,
                   ),
+                  PopupMenuItem(
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.list),
+                        SizedBox(
+                          width: 8,
+                        ),
+                        Text('${note.isCheckList ? 'remove' : 'add'} check list'),
+                      ],
+                    ),
+                    value: 2,
+                  ),
+                  if (note.isCheckList && !reorder)
+                    PopupMenuItem(
+                      child: Row(
+                        children: <Widget>[
+                          Icon(Icons.reorder),
+                          SizedBox(
+                            width: 8,
+                          ),
+                          Text('Reorder'),
+                        ],
+                      ),
+                      value: 3,
+                    )
                 ],
               ),
+
               // IconButton(
               //   icon: Icon(Icons.more_vert),
               //   onPressed: () {
@@ -133,7 +190,7 @@ class _NoteDetailState extends State<NoteDetail> {
           ),
           body: Container(
             color: note.color,
-            child: ListView(
+            child: Column(
               children: <Widget>[
                 SizedBox(
                   height: 10,
@@ -159,27 +216,135 @@ class _NoteDetailState extends State<NoteDetail> {
                   ),
                 ),
                 Divider(),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                  child: EditableText(
-                      onChanged: (str) {
-                        note.note = str;
-                      },
-                      maxLines: 300,
-                      controller: _contentController,
-                      focusNode: _contentFocus,
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 18,
-                      ),
-                      cursorColor: Colors.blue,
-                      backgroundCursorColor: Colors.blue),
-                )
+                if (!note.isCheckList)
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 18),
+                          child: EditableText(
+                              onChanged: (str) {
+                                note.content = str;
+                              },
+                              maxLines: 300,
+                              controller: _contentController,
+                              focusNode: _contentFocus,
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                              ),
+                              cursorColor: Colors.blue,
+                              backgroundCursorColor: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (note.isCheckList && !reorder)
+                  _buildCheckList(note.checkList),
+                if (note.isCheckList && reorder)
+                  _buildCheckListReorder(note.checkList)
               ],
             ),
           ),
         ),
       );
     });
+  }
+
+  _buildCheckList(List checkList) {
+    return Expanded(
+      child: ListView(
+        children: [
+          ...List.generate(checkList.length, (i) {
+            return Row(
+              children: <Widget>[
+                Checkbox(
+                  onChanged: (value) {
+                    setState(() {
+                      checkList[i]['state'] = !checkList[i]['state'];
+                    });
+                  },
+                  value: checkList[i]['state'],
+                ),
+                Expanded(
+                  child: TextFormField(
+                    style: TextStyle(fontSize: 20),
+                    decoration: InputDecoration(border: InputBorder.none),
+                    initialValue: checkList[i]['content'],
+                    onChanged: (value) {
+                 
+                      checkList[i]['content'] = value;
+                    },
+                    onEditingComplete: () {
+                      print('compelete');
+                    },
+                  ),
+                ),
+              ],
+            );
+          }),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: FlatButton.icon(
+              icon: Icon(
+                Icons.add,
+                color: Colors.grey,
+              ),
+              label: Text(
+                'Add an element',
+                style: TextStyle(
+                  color: Colors.grey,
+                ),
+              ),
+              onPressed: () {
+                setState(() {
+                  checkList.add({'state': false, 'content': ''});
+                });
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  _buildCheckListReorder(List checkList) {
+    return Expanded(
+      child: ReorderableListView(
+        children: List.generate(checkList.length, (i) {
+          return Container(
+            margin: EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+            key: Key('$i'),
+            child: Row(
+              children: <Widget>[
+                Icon(Icons.reorder),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      checkList[i]['content'],
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    setState(() {
+                      checkList.removeAt(i);
+                    });
+                  },
+                )
+              ],
+            ),
+          );
+        }),
+        onReorder: (a, b) {
+          var inter = checkList.removeAt(a);
+          checkList.insert(b - 1, inter);
+          setState(() {});
+        },
+      ),
+    );
   }
 }

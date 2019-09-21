@@ -22,18 +22,17 @@ class _DatePickerState extends State<DatePicker> {
 
   void _onDaySelected(DateTime day, List events) {
     dateSelected = day;
-    print(day.microsecond);
   }
 
   @override
   void initState() {
     super.initState();
     _calendarController = CalendarController();
-    
+
     if (widget.date == null) {
-    newDate = Date();
-    newDate.every = Every.week;
-    dateSelected = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 12);
+      newDate = Date();
+      newDate.every = 'week';
+      dateSelected = DateTime.now();
     } else {
       newDate = widget.date;
       dateSelected = widget.date.date;
@@ -41,11 +40,9 @@ class _DatePickerState extends State<DatePicker> {
     }
   }
 
-  String getEvery(Every every) {
-    if (every == Every.day) return 'day';
-    if (every == Every.week) return 'week';
-    if (Every.month == every) return 'month';
-    return 'year';
+  void dispose() {
+    _calendarController.dispose();
+    super.dispose();
   }
 
   @override
@@ -96,7 +93,8 @@ class _DatePickerState extends State<DatePicker> {
                                       : timeSelected.format(context)),
                                   onPressed: () {
                                     showTimePicker(
-                                      initialTime: timeSelected ?? TimeOfDay.now(),
+                                      initialTime:
+                                          timeSelected ?? TimeOfDay.now(),
                                       context: context,
                                     ).then((response) {
                                       setState(() {
@@ -144,11 +142,7 @@ class _DatePickerState extends State<DatePicker> {
                                 child: FlatButton(
                                   child: (!newDate.repeat)
                                       ? Text('no repeat')
-                                      : Text(
-                                          ' every ${getEvery(newDate.every)}' +
-                                              (newDate.occurence != 1
-                                                  ? 's'
-                                                  : '')),
+                                      : Text(' every ${newDate.every}'),
                                   onPressed: () {
                                     showModalBottomSheet(
                                       context: context,
@@ -183,37 +177,17 @@ class _DatePickerState extends State<DatePicker> {
                         padding: const EdgeInsets.all(10.0),
                         child: Icon(Icons.notifications),
                       ),
-                      Expanded(
-                        child: Container(
-                          margin: EdgeInsets.symmetric(vertical: 3),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(7),
-                            color: Colors.grey[200],
-                          ),
-                          child: Row(
-                            children: <Widget>[
-                              Expanded(
-                                child: FlatButton(
-                                  child: (!newDate.reminder)
-                                      ? Text('no reminder')
-                                      : Text(' every'),
-                                  onPressed: () {
-                                  },
-                                ),
-                              ),
-                              (!newDate.reminder)
-                                  ? Container()
-                                  : IconButton(
-                                      icon: Icon(Icons.clear),
-                                      onPressed: () {
-                                        setState(() {
-                                          newDate.reminder = false;
-                                        });
-                                      },
-                                    )
-                            ],
-                          ),
-                        ),
+                      Expanded(child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Text('reminder : '),
+                      )),
+                      Switch.adaptive(
+                        onChanged: (value) {
+                          setState(() {
+                            newDate.reminder = value;
+                          });
+                        },
+                        value: newDate.reminder,
                       ),
                     ],
                   ),
@@ -240,7 +214,6 @@ class _DatePickerState extends State<DatePicker> {
                         newDate.time = timeSelected;
                         widget.setDate(newDate);
                         Navigator.of(context).pop();
-                        
                       },
                     ),
                   ],
@@ -297,22 +270,22 @@ class _RepeatState extends State<Repeat> {
                     items: [
                       DropdownMenuItem(
                         child: Text('day'),
-                        value: Every.day,
+                        value: 'day',
                       ),
                       DropdownMenuItem(
                         child: Text('week'),
-                        value: Every.week,
+                        value: 'week',
                       ),
                       DropdownMenuItem(
                         child: Text('month'),
-                        value: Every.month,
+                        value: 'month',
                       ),
                       DropdownMenuItem(
                         child: Text('year'),
-                        value: Every.year,
+                        value: 'year',
                       ),
                     ],
-                    onChanged: (Every repeat) {
+                    onChanged: (String repeat) {
                       setState(() {
                         _newDate.every = repeat;
                       });
@@ -322,7 +295,7 @@ class _RepeatState extends State<Repeat> {
               ),
             ],
           ),
-          (_newDate.every == Every.week)
+          (_newDate.every == 'week')
               ? Row(
                   children: daysOfWeek
                       .map(

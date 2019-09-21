@@ -16,9 +16,9 @@ class Calendar extends StatefulWidget {
 class _Calendar extends State<Calendar> with TickerProviderStateMixin {
   // Map<DateTime, List> _events;
   //TODO: add animation in showCalendar
-  AnimationController _animationController;
+  //AnimationController _animationController;
   CalendarController _calendarController;
-  DateTime _selectedMonth = DateTime.now(), _selectedDay = DateTime.now();
+  DateTime _selectedMonth = DateTime.now();
   List<Task> tasks;
   bool showCalendar = false;
 
@@ -28,25 +28,18 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
 
     _calendarController = CalendarController();
 
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 400),
-    );
-    _animationController.forward();
+    // _animationController = AnimationController(
+    //   vsync: this,
+    //   duration: const Duration(milliseconds: 400),
+    // );
+    // _animationController.forward();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    //  _animationController.dispose();
     _calendarController.dispose();
     super.dispose();
-  }
-
-  void _onDaySelected(DateTime day, List events) {
-    setState(() {
-      _selectedDay = day;
-      _selectedMonth = day;
-    });
   }
 
   void _onVisibleDaysChanged(
@@ -89,29 +82,27 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
     return ScopedModelDescendant<TasksModel>(
       child: SideDrawer(),
       builder: (BuildContext context, Widget child, TasksModel model) {
-        tasks = model.tasksOfDay(_selectedDay);
+        tasks = model.tasksOfDay;
         tasks.sort((a, b) => a.date.time == null ? 1 : -1);
         return Scaffold(
           drawer: child,
           appBar: AppBar(
             elevation: 0,
-            backgroundColor: Colors.transparent,
-            iconTheme: IconThemeData(color: Theme.of(context).primaryColor),
+            //backgroundColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: Colors.white),
             title: Text(
-              '${monthsOfYear[_selectedMonth.month - 1]}, ${_selectedMonth.year}',
-              style: TextStyle(color: Theme.of(context).primaryColor),
+              _getTitle(model.selectedDay),
+              style: TextStyle(color: Colors.white),
             ),
             actions: <Widget>[
               IconButton(
-                icon: showCalendar && _calendarController.calendarFormat == CalendarFormat.month ? Icon(Icons.keyboard_arrow_up) : Icon(Icons.keyboard_arrow_down),
+                icon: showCalendar
+                    ? Icon(Icons.keyboard_arrow_up)
+                    : Icon(Icons.keyboard_arrow_down),
                 onPressed: () {
-                  if (!showCalendar || _calendarController.calendarFormat == CalendarFormat.month)
                   setState(() {
                     showCalendar = !showCalendar;
                   });
-                  else {
-                    _calendarController.setCalendarFormat(CalendarFormat.month);
-                  }
                 },
               )
             ],
@@ -119,10 +110,17 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
           body: Column(
             children: <Widget>[
               Container(
-                child: _buildCalendar(),
                 height: showCalendar ? null : 0,
+                child: _buildCalendar(context, model),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius:
+                      const BorderRadius.only(bottomLeft: Radius.circular(30)),
+                ),
               ),
-              Divider(),
+              const SizedBox(
+                height: 15,
+              ),
               Expanded(
                 child: ListView.builder(
                   itemCount: tasks.length,
@@ -142,18 +140,6 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
                   },
                 ),
               ),
-              // ...tasks.map((Task task) {
-              //   return GestureDetector(
-              //       onTap: () {
-              //         Navigator.of(context).push(MaterialPageRoute(
-              //             builder: (context) => TaskDetail(task.id)));
-              //       },
-              //       child: TaskCard(
-              //           task,
-              //           (task.labels == '')
-              //               ? null
-              //               : model.findByName(task.labels.split('/')[0])));
-              // }).toList(),
             ],
           ),
         );
@@ -161,15 +147,56 @@ class _Calendar extends State<Calendar> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCalendar() {
-    showCalendar = true;
+  Widget _buildCalendar(context, model) {
     return TableCalendar(
       calendarController: _calendarController,
       initialCalendarFormat: CalendarFormat.week,
       headerVisible: false,
-      onDaySelected: _onDaySelected,
+      initialSelectedDay: model.selectedDay,
+      onDaySelected: (DateTime day, List events) {
+        model.selectedDay = day;
+        setState(() {
+          _selectedMonth = day;
+        });
+      },
       onVisibleDaysChanged: _onVisibleDaysChanged,
       formatAnimation: FormatAnimation.slide,
+      calendarStyle: CalendarStyle(
+        selectedColor: Theme.of(context).primaryColorDark,
+        todayColor: Theme.of(context).primaryColorLight,
+        todayStyle: TextStyle(color: Colors.black.withOpacity(0.44)),
+        weekdayStyle:
+            const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        weekendStyle: const TextStyle(color: Colors.white60),
+        outsideDaysVisible: false,
+      ),
+      daysOfWeekStyle: DaysOfWeekStyle(
+        weekdayStyle: TextStyle(color: Colors.black.withOpacity(0.54)),
+        weekendStyle: const TextStyle(color: Colors.black38),
+      ),
     );
+  }
+
+  String _getTitle(DateTime selectedDay) {
+    DateTime today = DateTime.now();
+    if ((showCalendar && selectedDay.month == _selectedMonth.month) || !showCalendar) {
+      if (selectedDay.day == today.day &&
+          selectedDay.month == today.month &&
+          selectedDay.year == today.year) return "Today";
+      today = today.add(Duration(days: 1));
+      if (selectedDay.day == today.day &&
+          selectedDay.month == today.month &&
+          selectedDay.year == today.year) return "Tomorrow";
+      today = today.subtract(Duration(days: 2));
+      if (selectedDay.day == today.day &&
+          selectedDay.month == today.month &&
+          selectedDay.year == today.year) return "Yesterday";
+    }
+
+    String result = "";
+    if (!showCalendar) result = '${selectedDay.day} ';
+    result +=
+        ' ${monthsOfYear[_selectedMonth.month - 1]}, ${_selectedMonth.year}';
+    return result;
   }
 }
